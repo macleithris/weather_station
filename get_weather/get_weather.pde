@@ -1,14 +1,18 @@
 import processing.serial.*;
 
 Serial port;
+
 int BAUD = 9600;
+
 String APIKEY = "xxx";
 String CITYNAME = "Boston";
+
+int STRLEN = 16;
 
 void setup() {
   port = new Serial(this, Serial.list()[2], BAUD); // set baud rate
   println(Serial.list());
-  delay(5000); // wait for the LCD to initialize
+  delay(2000); // wait for the LCD to initialize
 }
 
 void draw() {
@@ -16,15 +20,12 @@ void draw() {
   JSONObject resp = getResponse(CITYNAME, APIKEY);  
   
   String tempStr = getTempStr(resp);
-  port.write(0xff);
-  port.write(tempStr);
-  
   String desc = getDesc(resp);
-  port.write(0xfe);
-  port.write(desc);
-  
-  port.write(0xfd);
-  
+  String outstr = tempStr + desc;
+
+  port.clear();
+  port.write(outstr);
+ 
   println(tempStr);
   println(desc);
   
@@ -41,12 +42,21 @@ JSONObject getResponse(String cityname, String apiKey) {
 
 String getDesc(JSONObject response) {
   JSONArray weather = response.getJSONArray("weather");
-  return weather.getJSONObject(0).getString("description");
+  String desc = weather.getJSONObject(0).getString("description");
+  return padStr(desc, STRLEN); 
 }
 
 String getTempStr(JSONObject response) {
   JSONObject main = response.getJSONObject("main");
-  return String.format("%3.1f degrees F", kelvin2F(main.getFloat("temp")));
+  String temp = String.format("%3.1f degrees F", kelvin2F(main.getFloat("temp")));
+  return padStr(temp, STRLEN);
 }
 
 float kelvin2F(float kelvin) { return (kelvin - 273.15) * 1.8 + 32.0; }
+
+String padStr(String str, int padLen) {
+  int len = str.length();
+  if (len < padLen) { for (int i = len; i < padLen; i++) { str += " "; } }
+  if (len > padLen) { str = str.substring(0, padLen); }
+  return str;
+}
