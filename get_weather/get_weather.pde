@@ -10,8 +10,8 @@ String CITYNAME = "Boston";
 int STRLEN = 16;
 
 void setup() {
-  port = new Serial(this, Serial.list()[2], BAUD); // set baud rate
   println(Serial.list());
+  port = new Serial(this, Serial.list()[2], BAUD); // set baud rate
   delay(2000); // wait for the LCD to initialize
 }
 
